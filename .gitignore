@@ -1,0 +1,6 @@
+# Project exclude paths
+/node_modules/
+/day2020_01.js
+/day2020_01.js.map
+/day2020_01.spec.js
+/day2020_01.spec.js.map
