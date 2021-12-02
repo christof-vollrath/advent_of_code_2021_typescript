@@ -12,7 +12,7 @@ function countIncreases(numbers: number[]) {
     return numberIncreases
 }
 
-function readFileInput(path: string) {
+export function readFileInput(path: string) {
     return readFileSync(path, 'utf8')
 }
 
@@ -26,7 +26,7 @@ function readFileInputNumbers(path: string) {
     return inputLines.map((line) => parseInt(line))
 }
 
-describe("Part One", () =>{
+describe("Day 01 Part One", () =>{
     describe("Example", () => {
         const exampleData = [199, 200, 208, 210, 200, 207, 240, 269, 260, 263]
         it("Should count increases correctly", () => {
@@ -78,7 +78,7 @@ function sums(numbersArray: number[][]): number[] {
     return numbersArray.map((numbers) => sum(numbers))
 }
 
-describe("Part Two", () =>{
+describe("Day 01 Part Two", () =>{
     describe("Example", () => {
         const exampleData = [199, 200, 208, 210, 200, 207, 240, 269, 260, 263]
         it("Should find sliding windows correctly", () => {
