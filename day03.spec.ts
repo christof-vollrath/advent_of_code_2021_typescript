@@ -11,12 +11,20 @@ function parseDiagnosticReport(reportString: string): string[] {
     return result
 }
 
-function calculateCommonBit(reports: string[][], col: number) {
+function calculateCommonBit(reports: string[][], col: number, mostCommon: boolean = true, defaultValue: string | null = null) {
     const column = reports.map((line) => line[col])
     const nr1 = column.filter((c) => c === '1').length
-    if (nr1 == reports.length / 2) throw Error(`no common value in col ${col}`)
-    if (nr1 > reports.length / 2) return '1'
-    else return '0'
+    if (nr1 == reports.length / 2) {
+        if (defaultValue == null) throw Error(`no common value in col ${col}`)
+        else return defaultValue
+    }
+    if (mostCommon) {
+        if (nr1 > reports.length / 2) return '1'
+        else return '0'
+    } else {
+        if (nr1 < reports.length / 2) return '1'
+        else return '0'
+    }
 }
 
 function calculateCommonBitForAllColumns(reports: string[][]): string[] {
@@ -89,6 +97,73 @@ describe("Day 03 Part One", () => {
                 const reports = parseDiagnosticReports(input)
                 const pc = powerConsumption(reports)
                 expect(pc).toBe(4174964)
+            })
+        })
+    })
+})
+
+function filterByColumn(reports: string[][], column: number, bit: string) {
+    return reports.filter((report) => report[column] === bit)
+}
+
+function findRating(reports: string[][], mostCommon: boolean): number {
+    let currentReports = reports
+    let currentColumn = 0
+    while(true) {
+        let bit = calculateCommonBit(currentReports, currentColumn, mostCommon, mostCommon ? '1' : '0')
+        currentReports = filterByColumn(currentReports, currentColumn, bit)
+        if (currentReports.length == 0) throw Error(`No report found for column ${currentColumn}`)
+        if (currentReports.length == 1) {
+            const report = currentReports[0]
+            return parseInt(report.join(''), 2)
+        }
+        currentColumn++
+    }
+}
+
+function calculateLifeSupportRating(reports: string[][]): number {
+    const oxygenGeneratorRating = findRating(reports, true)
+    const co2ScrubberRating = findRating(reports, false)
+    return oxygenGeneratorRating * co2ScrubberRating
+}
+
+describe("Day 03 Part Two", () => {
+    describe("Example", () => {
+        const exampleData = `
+            00100
+            11110
+            10110
+            10111
+            10101
+            01111
+            00111
+            11100
+            10000
+            11001
+            00010
+            01010
+        `
+        const reports = parseDiagnosticReports(exampleData)
+        it("Should find oxygen generator rating", () => {
+            const r = findRating(reports, true)
+            expect(r).toBe(23)
+        })
+        it("Should find CO2 scrubber rating", () => {
+            const r = findRating(reports, false)
+            expect(r).toBe(10)
+        })
+        it("Should calculate the life support rating", () => {
+            const r = calculateLifeSupportRating(reports)
+            expect(r).toBe(230)
+        })
+    })
+    describe("Exercise", () => {
+        describe("Find solution", () => {
+            it ("Should have found the solution", () => {
+                const input = readFileInput("inputDay03.txt")
+                const reports = parseDiagnosticReports(input)
+                const r = calculateLifeSupportRating(reports)
+                expect(r).toBe(4474944)
             })
         })
     })
