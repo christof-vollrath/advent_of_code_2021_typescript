@@ -61,7 +61,7 @@ function parseCourseActions(actionsString: string): CourseAction[] {
     })
 }
 
-describe("Day 01 Part One", () => {
+describe("Day 02 Part One", () => {
     describe("Example", () => {
         const exampleData = `
             forward 5
