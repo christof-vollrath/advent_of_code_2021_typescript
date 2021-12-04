@@ -11,12 +11,10 @@ function parseBingoGame(bingoGameString: string): BingoGame {
     const drawnNumbers = parts[0].trim().split(',').map((nrStr) => parseInt(nrStr))
     const boardsStrings = parts.slice(1, parts.length)
     const boards = boardsStrings.map((boardStrings) => {
-        const board = boardStrings.split('\n').map((boardLine) => {
+        return boardStrings.split('\n').map((boardLine) => {
             const nrsRegex = new RegExp(' +')
-            const boardRow = boardLine.trim().split(nrsRegex).map((nrStr) => parseInt(nrStr))
-            return boardRow
+            return boardLine.trim().split(nrsRegex).map((nrStr) => parseInt(nrStr))
         })
-        return board
     })
     return { drawnNumbers: drawnNumbers, boards: boards }
 }
