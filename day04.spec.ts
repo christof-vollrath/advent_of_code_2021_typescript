@@ -69,6 +69,21 @@ function isBingo(boards: Board[]): Board | null {
     return null
 }
 
+function filterBingo(boards: Board[]): boolean[] {
+    const result: boolean[] = []
+    for (const board of boards) {
+        let bingo = false
+        for (let row = 0; row < board.numbers.length; row++) {
+            if (isMarkedRow(board, row)) bingo = true
+        }
+        for (let col = 0; col < board.numbers[0].length; col++) {
+            if (isMarkedColumn(board, col)) bingo = true
+        }
+        result.push(bingo)
+    }
+    return result
+}
+
 function repeatUntilBingo(numbers: number[], boards: Board[]): [number, Board] {
     for (const number of numbers) {
         markNumber(number, boards)
@@ -92,29 +107,44 @@ function calculateResult(bingoNumber: number, board: Board) {
     return sumUnmarked(board) * bingoNumber
 }
 
+function repeatUntilLastBingo(numbers: number[], boards: Board[]): [number, Board] {
+    let recentBingos: boolean[]  = []
+    for (const number of numbers) {
+        markNumber(number, boards)
+        const bingoBoards = filterBingo(boards)
+        if (bingoBoards.find((b) => b === false) === undefined) { // All boards are bingo
+            const bingoIndex = recentBingos.findIndex((b) => b === false) // Index of the most recent bingo board
+            return [number, boards[bingoIndex]]
+        }
+        recentBingos = bingoBoards
+    }
+    throw Error("Not all boards have reached bingo")
+}
+
+const exampleData = `
+        7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
+        
+        22 13 17 11  0
+         8  2 23  4 24
+        21  9 14 16  7
+         6 10  3 18  5
+         1 12 20 15 19
+        
+         3 15  0  2 22
+         9 18 13 17  5
+        19  8  7 25 23
+        20 11 10 24  4
+        14 21 16 12  6
+        
+        14 21 17 24  4
+        10 16 15  9 19
+        18  8 23 26 20
+        22 11 13  6  5
+         2  0 12  3  7
+    `
+
 describe("Day 04 Part One", () => {
     describe("Example", () => {
-        const exampleData = `
-            7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
-            
-            22 13 17 11  0
-             8  2 23  4 24
-            21  9 14 16  7
-             6 10  3 18  5
-             1 12 20 15 19
-            
-             3 15  0  2 22
-             9 18 13 17  5
-            19  8  7 25 23
-            20 11 10 24  4
-            14 21 16 12  6
-            
-            14 21 17 24  4
-            10 16 15  9 19
-            18  8 23 26 20
-            22 11 13  6  5
-             2  0 12  3  7
-        `
         it("Should have parsed bingo game", () => {
             const bingoGame = parseBingoGame(exampleData)
             expect(bingoGame.drawnNumbers.length).toBe(27)
@@ -157,7 +187,7 @@ describe("Day 04 Part One", () => {
         })
         describe("Should repeat draw until bingo", () => {
             const bingoGame = parseBingoGame(exampleData)
-            const [bingoNumber, bingoBoard] = repeatUntilBingo([7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 1, 3], bingoGame.boards)
+            const [bingoNumber, bingoBoard] = repeatUntilBingo([7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19, 3, 26, 1], bingoGame.boards)
             expect(bingoNumber).toBe(24)
             expect(bingoGame.boards[2].marks[0]).toStrictEqual([true, true, true, true, true])
             it("Should calculate result", () => {
@@ -174,6 +204,29 @@ describe("Day 04 Part One", () => {
                 const [bingoNumber, bingoBoard] = repeatUntilBingo(bingoGame.drawnNumbers, bingoGame.boards)
                 const result = calculateResult(bingoNumber, bingoBoard)
                 expect(result).toBe(69579)
+            })
+        })
+    })
+})
+
+describe("Day 04 Part Two", () => {
+    describe("Should repeat draw until last bingo", () => {
+        const bingoGame = parseBingoGame(exampleData)
+        const [bingoNumber, bingoBoard] = repeatUntilLastBingo([7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19, 3, 26, 1], bingoGame.boards)
+        expect(bingoNumber).toBe(13)
+        it("Should calculate result", () => {
+            const result = calculateResult(bingoNumber, bingoBoard)
+            expect(result).toBe(1924)
+        })
+    })
+    describe("Exercise", () => {
+        describe("Find solution", () => {
+            it ("Should have found the solution", () => {
+                const input = readFileInput("inputDay04.txt")
+                const bingoGame = parseBingoGame(input)
+                const [bingoNumber, bingoBoard] = repeatUntilLastBingo(bingoGame.drawnNumbers, bingoGame.boards)
+                const result = calculateResult(bingoNumber, bingoBoard)
+                expect(result).toBe(14877)
             })
         })
     })
