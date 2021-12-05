@@ -42,16 +42,17 @@ function filterHorizontalVertical(vents: Vent[]) {
     return vents.filter((vent) => vent.to[0] ===  vent.from[0] || vent.to[1] ===  vent.from[1])
 }
 
+
+
+function incrDiagram(diagram: number[][], x: number, y: number) {
+    let curr = diagram[y][x]
+    if (curr === undefined) curr = 0
+    diagram[y][x] = curr + 1
+}
+
 function fillDiagramWithVent(diagram: number[][], vent: Vent) {
     const diffX = vent.to[0] - vent.from[0]
     const diffY = vent.to[1] - vent.from[1]
-
-
-    function incr(diagram: number[][], x: number, y: number) {
-        let curr = diagram[y][x]
-        if (curr === undefined) curr = 0
-        diagram[y][x] = curr + 1
-    }
 
     if (diffX != 0 && diffY == 0) {
         const y = vent.to[1]
@@ -62,7 +63,7 @@ function fillDiagramWithVent(diagram: number[][], vent: Vent) {
             fromX = vent.from[0] ; toX = vent.to[0]
         }
         for (let x = fromX; x <= toX; x++)
-            incr(diagram, x, y)
+            incrDiagram(diagram, x, y)
     } else if (diffY != 0 && diffX == 0) {
         const x = vent.to[0]
         let fromY; let toY
@@ -72,31 +73,29 @@ function fillDiagramWithVent(diagram: number[][], vent: Vent) {
             fromY = vent.from[1] ; toY = vent.to[1]
         }
         for (let y = fromY; y <= toY; y++)
-            incr(diagram, x, y)
+            incrDiagram(diagram, x, y)
     } else throw Error(`No vertical or horizontal line vent=${JSON.stringify(vent)} diffX=${diffX} diffY=${diffY}`)
 }
 
-function fillDiagram(vents: Vent[]): number[][] {
-
-    function initDiagram(vents: Vent[]): number[][] {
-        const maxY = Math.max(...(vents.map((vent) =>
-            Math.max(vent.to[1], vent.from[1])
-        )))
-        const maxX = Math.max(...(vents.map((vent) =>
-            Math.max(vent.to[0], vent.from[0])
-        )))
-        const result: number[][] = []
-        for (let y = 0; y <= maxY; y++) {
-            const row: number[] = []
-            for (let x = 0; x <= maxX; x++)
-                row.push(0)
-            result.push(row)
-        }
-        return result
+function initDiagram(vents: Vent[]): number[][] {
+    const maxY = Math.max(...(vents.map((vent) =>
+        Math.max(vent.to[1], vent.from[1])
+    )))
+    const maxX = Math.max(...(vents.map((vent) =>
+        Math.max(vent.to[0], vent.from[0])
+    )))
+    const result: number[][] = []
+    for (let y = 0; y <= maxY; y++) {
+        const row: number[] = []
+        for (let x = 0; x <= maxX; x++)
+            row.push(0)
+        result.push(row)
     }
+    return result
+}
 
+function fillDiagram(vents: Vent[]): number[][] {
     const diagram: number[][] = initDiagram(vents)
-
     for (const vent of vents)
         fillDiagramWithVent(diagram, vent)
     return diagram
@@ -174,6 +173,74 @@ describe("Day 05 Part One", () => {
                 const input = readFileInput("inputDay05.txt")
                 const dangerousAreas = countDangerousAreas(fillDiagram(filterHorizontalVertical(parseVents(input))))
                 expect(dangerousAreas).toBe(7318)
+            })
+        })
+    })
+})
+function fillDiagramWithVent2(diagram: number[][], vent: Vent) {
+    const diffX = vent.to[0] - vent.from[0]
+    const diffY = vent.to[1] - vent.from[1]
+
+    if (diffX == 0 || diffY == 0) { // horizontal or vertical
+        fillDiagramWithVent(diagram, vent)
+    } else {
+        let yIncr
+        if (diffY < 0)  yIncr = -1
+        else yIncr = 1
+        let xIncr
+        if (diffX < 0) xIncr = -1
+        else xIncr = 1
+        let x = vent.from[0]
+        let y = vent.from[1]
+        let toX = vent.to[0]
+        while(true) {
+            incrDiagram(diagram, x, y)
+            if (x === toX) break
+            x += xIncr
+            y += yIncr
+        }
+    }
+}
+
+function fillDiagram2(vents: Vent[]): number[][] {
+    const diagram: number[][] = initDiagram(vents)
+    for (const vent of vents)
+        fillDiagramWithVent2(diagram, vent)
+    return diagram
+}
+
+describe("Day 05 Part Two", () => {
+    describe("Example", () => {
+        describe("Follow lines and fill diagram", () => {
+            it("Should have filled diagram", () => {
+                const diagram = printDiagram(fillDiagram2(parseVents(exampleDataDay05)))
+                const expectedDiagram = `1.1....11.
+.111...2..
+..2.1.111.
+...1.2.2..
+.112313211
+...1.2....
+..1...1...
+.1.....1..
+1.......1.
+222111....`
+                expect(diagram).toBe(expectedDiagram)
+            })
+            describe("Follow lines, fill diagram and count dangerous areas", () => {
+                it("Should count dangerous areas", () => {
+                    const dangerousAreas = countDangerousAreas(fillDiagram2(parseVents(exampleDataDay05)))
+                    expect(dangerousAreas).toBe(12)
+                })
+            })
+
+        })
+    })
+    describe("Exercise", () => {
+        describe("Find solution", () => {
+            it ("Should have found the solution", () => {
+                const input = readFileInput("inputDay05.txt")
+                const dangerousAreas = countDangerousAreas(fillDiagram2(parseVents(input)))
+                expect(dangerousAreas).toBe(19939)
             })
         })
     })
