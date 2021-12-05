@@ -121,7 +121,7 @@ function repeatUntilLastBingo(numbers: number[], boards: Board[]): [number, Boar
     throw Error("Not all boards have reached bingo")
 }
 
-const exampleData = `
+const exampleDataDay04 = `
         7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
         
         22 13 17 11  0
@@ -146,7 +146,7 @@ const exampleData = `
 describe("Day 04 Part One", () => {
     describe("Example", () => {
         it("Should have parsed bingo game", () => {
-            const bingoGame = parseBingoGame(exampleData)
+            const bingoGame = parseBingoGame(exampleDataDay04)
             expect(bingoGame.drawnNumbers.length).toBe(27)
             expect(bingoGame.drawnNumbers[1]).toBe(4)
             expect(bingoGame.boards.length).toBe(3)
@@ -155,7 +155,7 @@ describe("Day 04 Part One", () => {
             expect(bingoGame.boards[0].numbers[0]).toStrictEqual([22, 13, 17, 11,  0])
         })
         it("Should mark numbers", () => {
-            const bingoGame = parseBingoGame(exampleData)
+            const bingoGame = parseBingoGame(exampleDataDay04)
             markNumber(22, bingoGame.boards)
             expect(bingoGame.boards[0].marks[0][0]).toBe(true)
             expect(bingoGame.boards[0].marks[0][1]).toBeUndefined()
@@ -163,30 +163,30 @@ describe("Day 04 Part One", () => {
             expect(bingoGame.boards[2].marks[3][0]).toBe(true)
         })
         it("Should mark many numbers", () => {
-            const bingoGame = parseBingoGame(exampleData)
+            const bingoGame = parseBingoGame(exampleDataDay04)
             markNumbers([7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24], bingoGame.boards)
             expect(bingoGame.boards[2].numbers[0]).toStrictEqual([14, 21, 17, 24, 4])
             expect(bingoGame.boards[2].marks[0]).toStrictEqual([true, true, true, true, true])
         })
         it("Should check marked line", () => {
-            const bingoGame = parseBingoGame(exampleData)
+            const bingoGame = parseBingoGame(exampleDataDay04)
             markNumbers([7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24], bingoGame.boards)
             expect(isMarkedRow(bingoGame.boards[2], 0)).toBe(true)
         })
         it("Should check marked column", () => {
-            const bingoGame = parseBingoGame(exampleData)
+            const bingoGame = parseBingoGame(exampleDataDay04)
             markNumbers([22, 8, 21, 6, 1], bingoGame.boards)
             expect(isMarkedColumn(bingoGame.boards[0], 0)).toBe(true)
         })
         it("Should find bingo", () => {
-            const bingoGame = parseBingoGame(exampleData)
+            const bingoGame = parseBingoGame(exampleDataDay04)
             markNumbers([7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21], bingoGame.boards)
             expect(isBingo(bingoGame.boards)).toBeNull()
             markNumbers([24], bingoGame.boards)
             expect(isBingo(bingoGame.boards)).not.toBeNull()
         })
         describe("Should repeat draw until bingo", () => {
-            const bingoGame = parseBingoGame(exampleData)
+            const bingoGame = parseBingoGame(exampleDataDay04)
             const [bingoNumber, bingoBoard] = repeatUntilBingo([7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19, 3, 26, 1], bingoGame.boards)
             expect(bingoNumber).toBe(24)
             expect(bingoGame.boards[2].marks[0]).toStrictEqual([true, true, true, true, true])
@@ -211,7 +211,7 @@ describe("Day 04 Part One", () => {
 
 describe("Day 04 Part Two", () => {
     describe("Should repeat draw until last bingo", () => {
-        const bingoGame = parseBingoGame(exampleData)
+        const bingoGame = parseBingoGame(exampleDataDay04)
         const [bingoNumber, bingoBoard] = repeatUntilLastBingo([7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19, 3, 26, 1], bingoGame.boards)
         expect(bingoNumber).toBe(13)
         it("Should calculate result", () => {
