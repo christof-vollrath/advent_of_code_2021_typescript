@@ -39,13 +39,8 @@ class Pond {
     }
 
     days(numberOfDays: number) {
-        let nrRecentFishs = this.count()
         for (let i = 1; i <= numberOfDays; i++) {
             this.fishes.push(...this.day())
-            const nrOfFishs = this.count()
-            console.log(`After day=${i} new=${nrOfFishs-nrRecentFishs} total=${nrOfFishs}`)
-            nrRecentFishs = nrOfFishs
-            console.log(`${this.toString()}`)
         }
     }
 
@@ -120,24 +115,72 @@ describe("Day 06 Part One", () => {
     })
 })
 
+class BulkPond {
+    public daysToBirth: number[] = Array<number>(9).fill(0)
+    constructor(initalDaysToBirth: number[]) {
+        for(const days of initalDaysToBirth) {
+            this.daysToBirth[days]++
+        }
+    }
+    day(): number[] {
+        const nextDaysToBirth: number[] = Array<number>(this.daysToBirth.length).fill(0)
+        for (let i = 0; i < this.daysToBirth.length; i++) {
+            if (i == 0) {
+                nextDaysToBirth[8] += this.daysToBirth[0]
+                nextDaysToBirth[6] = this.daysToBirth[0]
+            } else {
+                nextDaysToBirth[i-1] += this.daysToBirth[i]
+            }
+        }
+        return nextDaysToBirth;
+    }
+
+    days(numberOfDays: number) {
+        for (let i = 1; i <= numberOfDays; i++) {
+            this.daysToBirth = this.day()
+        }
+    }
+
+    count(): number {
+        return this.daysToBirth.reduce((sum, d) => sum + d)
+    }
+
+}
+
 describe("Day 06 Part Two", () => {
     const input = readFileInput("inputDay06.txt")
     const initialDays = input.split(",").map((s) => parseInt(s))
 
-    describe("Which entries are generated from input", () => {
-        const pond = new Pond(initialDays)
-        for (let i = 1; i <= 30; i++) {
-            const newFishes = pond.day()
-            console.log(`${i}: ${newFishes.length}`)
-        }
+    describe("Bulk pond with one lanternfish", () => {
+        const pond = new BulkPond([3]) // Since all fish behaves the same and positions don't play a role we just can bulk all fish with the same daes
+        it("Should be initalized correctly", () => {
+            expect(pond.daysToBirth[3]).toBe(1)
+            expect(pond.count()).toBe(1)
+        })
+        it("Should simulate 5 days correctly and print resulting pond", () => {
+            pond.days(5)
+            expect(pond.daysToBirth[5]).toBe(1)
+            expect(pond.daysToBirth[7]).toBe(1)
+            expect(pond.count()).toBe(2)
+        })
+        it("Should repeat 80 days resulting in 5934 fishs with example data", () => {
+            const pond = new BulkPond(exampleDataDay04)
+            pond.days(80)
+            expect(pond.count()).toBe(5934)
+        })
     })
 
-    describe("Many days", () => {
-        const pond = new Pond(initialDays)
-        pond.days(20) // more  will exceed stack size
+    describe("256 days with example", () => {
+        const pond = new BulkPond(exampleDataDay04)
+        pond.days(256)
+        expect(pond.count()).toBe(26984457539)
     })
+
     describe("Exercise", () => {
         describe("Find solution", () => {
+            const pond = new BulkPond(initialDays)
+            pond.days(256)
+            expect(pond.count()).toBe(1592918715629)
         })
     })
 })
