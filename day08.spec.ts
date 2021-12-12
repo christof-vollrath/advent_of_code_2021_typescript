@@ -98,3 +98,197 @@ describe("Day 08 Part One", () => {
         })
     })
 })
+
+function sortString(s: string) {
+    return s.split("").sort().join("")
+}
+
+function permutations<T>(input: T[]): T[][] {
+    if (input.length == 0) return []
+    if (input.length == 1) return [input]
+    else {
+        const first = input[0]
+        const restPermutations = permutations(input.slice(1))
+        const result: T[][] = []
+        for (const perm of restPermutations) {
+            for (let i = 0; i <= perm.length; i++) {
+                const newPerm = perm.slice(0, i)
+                newPerm.push(first)
+                newPerm.push(...perm.slice(i))
+                result.push(newPerm)
+            }
+        }
+        return result
+    }
+}
+
+function decodeInput(input: string, table: string[][]): string {
+    const splittedInput = input.split("")
+    const splittedResult = []
+    const conversionTable = new Map<string, string>()
+    for (const tableEntry of table) {
+        conversionTable.set(tableEntry[0], tableEntry[1])
+    }
+    for (const c of splittedInput) {
+        splittedResult.push(conversionTable.get(c))
+    }
+    return splittedResult.join("")
+}
+const sevenSegmentCodes = new Map<string, number>([
+    ["abcefg", 0], ["cf", 1], ["acdeg", 2], ["acdfg", 3], ["bcdf", 4], ["abdfg", 5], ["abdefg", 6], ["acf", 7], ["abcdefg", 8], ["abcdfg", 9]
+])
+
+function decodeSevenSegmentCode(string: string) {
+    return sevenSegmentCodes.get(sortString(string))
+
+}
+const validSevenSegmentCodes = Array.from(sevenSegmentCodes.keys())
+
+function checkValidCode(code: string): boolean {
+    return validSevenSegmentCodes.includes(sortString(code))
+}
+
+function createAllDecodingTables(): string[][][] {
+    const inputs = ["a", "b", "c", "d", "e", "f", "g"]
+    const allPermutations = permutations(inputs)
+    const result = []
+    for (const permutation of allPermutations) {
+        const decodingTable: string[][] = []
+        for (let i = 0; i < inputs.length; i++)
+            decodingTable.push([inputs[i], permutation[i]])
+        result.push(decodingTable)
+    }
+    return result
+}
+
+function validDecodingTable(inputs: string[], t: string[][]) {
+    for (const input of inputs) {
+        const decoded = decodeInput(input, t)
+        if (! checkValidCode(decoded)) return false
+    }
+    return true
+}
+
+function filterValidDecodingTables(input: string[], decodingTables: string[][][]) {
+    const result: string[][][] = []
+    for(const t of decodingTables) {
+        if (validDecodingTable(input, t)) result.push(t)
+    }
+    return result
+}
+
+
+function decodeSevenSegmentInput(input: string, decodingTable: string[][]): number {
+    const decodedString = decodeInput(input, decodingTable)
+    const result = decodeSevenSegmentCode(decodedString)
+    if (result === undefined) throw ("Error: no decoding for " + input)
+    return result
+
+}
+
+function decodeEntry(uniqueSignalPatterns: string[], fourDigitOutputValues: string[], decodingTables: string[][][]) {
+    const validDecodingTables = filterValidDecodingTables(uniqueSignalPatterns, decodingTables)
+    expect(validDecodingTables.length).toBe(1) // Should have a unique decoding table
+    const validDecodingTable = validDecodingTables[0]
+    const decodedValues: number[] = []
+    for (const value of fourDigitOutputValues) {
+        const decodedValue = decodeSevenSegmentInput(value, validDecodingTable)
+        decodedValues.push(decodedValue)
+    }
+    const helperString = decodedValues.join("")
+    return parseInt(helperString)
+}
+
+function decodeAndSum(signalEntries: SignalEntry[]): number {
+    const decodingTables = createAllDecodingTables()
+    let result = 0
+    for (const signalEntry of signalEntries) {
+        const decoded = decodeEntry(signalEntry.uniqueSignalPatterns, signalEntry.fourDigitOutputValues, decodingTables)
+        result += decoded
+    }
+    return result
+}
+
+describe("Day 08 Part One", () => {
+    describe("Sort string", () => {
+        it("Should sort a string", () => {
+            expect(sortString("basg")).toBe("abgs")
+        })
+    })
+    describe("Permutations", () => {
+        it("Should create all permutations", () => {
+            expect(permutations([])).toStrictEqual([])
+            expect(permutations(["a"])).toStrictEqual([["a"]])
+            expect(permutations(["a", "b"])).toStrictEqual([["a", "b"], ["b", "a"]])
+            expect(permutations(["a", "b", "c"])).toStrictEqual([["a", "b", "c"], ["b", "a", "c"], ["b", "c", "a"], ["a", "c", "b"], ["c", "a", "b"], ["c", "b", "a"]])
+            expect(permutations(["a", "b", "c", "d", "e", "f"]).length).toBe(720)
+        })
+    })
+    describe("Decode", () => {
+        const table = [["d", "a"], ["e", "b"], ["a", "c"], ["f", "d"], ["g", "e"], ["b", "f"], ["c", "g"]]
+        it("Should decode input correctly", () => {
+            const decoded = decodeInput("acedgfb", table)
+            expect(decoded).toBe("cgbaedf")
+        })
+    })
+
+    describe("Find valid codes", () => {
+        it("Should validate correct codes", () => {
+            expect(checkValidCode("acdeg")).toBe(true)
+            expect(checkValidCode("dbcf")).toBe(true)
+        })
+        it("Should reject incorrect codes", () => {
+            expect(checkValidCode("adeg")).toBe(false)
+        })
+    })
+
+    describe("Find all deoding tables", () => {
+        const decodingTables = createAllDecodingTables()
+        it("Should have created all decoding tables", () => {
+            expect(decodingTables.length).toBe(5040)
+            const simpleDecodingTable = decodingTables[0]
+            expect(simpleDecodingTable[0]).toStrictEqual(["a", "a"])
+        })
+    })
+
+    describe("Find decoding table", () => {
+        const input = ["acedgfb", "cdfbe", "gcdfa", "fbcad", "dab", "cefabd", "cdfgeb", "eafb", "cagedb", "ab"]
+        it("Should find a valid decoding", () => {
+            const decodingTables = createAllDecodingTables()
+            const validDecodingTables = filterValidDecodingTables(input, decodingTables)
+            expect(validDecodingTables.length).toBe(1) // Should have a unique decoding table
+            const validDecodingTable = validDecodingTables[0]
+            const decodedInput = decodeSevenSegmentInput("cdfeb", validDecodingTable)
+            expect(decodedInput).toBe(5)
+        })
+    })
+
+    describe("Decode Entry", () => {
+        const uniqueSignalPatterns = ["be", "cfbegad", "cbdgef", "fgaecd", "cgeb", "fdcge", "agebfd", "fecdb", "fabcd", "edb"]
+        const fourDigitOutputValues = ["fdgacbe", "cefdb", "cefbgd", "gcbe"]
+        it("Should decode entry correctly", () => {
+            const decodingTables = createAllDecodingTables()
+            expect(decodeEntry(uniqueSignalPatterns, fourDigitOutputValues, decodingTables)).toBe(8394)
+        })
+    })
+
+    describe("Decode and sum", () => {
+        it("Should calculate the sum for the example", () => {
+            const signalEntries = parseSignalEntries(exampleDataDay08)
+            const sum = decodeAndSum(signalEntries)
+            expect(sum).toBe(61229)
+        })
+    })
+    describe("Exercise", () => {
+        describe("Find solution", () => {
+            it ("Should have found the solution", () => {
+                const input = readFileInput("inputDay08.txt")
+                const signalEntries = parseSignalEntries(input)
+                const sum = decodeAndSum(signalEntries)
+                expect(sum).toBe(1010472)
+            })
+        })
+    })
+
+})
+
